@@ -1,0 +1,17 @@
+{
+  "name": "pasalora-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local development and Docker commands for Pasalora Studio",
+  "scripts": {
+    "setup": "npm ci --prefix frontend && npm ci --prefix backend",
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:api": "npm run dev --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  }
+}

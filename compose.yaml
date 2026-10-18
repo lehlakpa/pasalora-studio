@@ -1,0 +1,29 @@
+name: pasalora-studio
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "4000"
+    expose:
+      - "4000"
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 15s
+    security_opt:
+      - no-new-privileges:true
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
