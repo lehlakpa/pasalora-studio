@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requestJson, saveDesign } from './api.js';
-import { makeDoc, presets } from './data.js';
+import { requestJson, saveDesign } from '../api/index.js';
+import { makeDoc, presets } from '../data.js';
 
 test('storefront API bypasses cached data', async () => {
   const original = globalThis.fetch;
@@ -46,4 +46,18 @@ test('only one e-commerce template remains; old template names use it', () => {
   assert.equal(Object.keys(presets).length, 1);
   assert.equal(presets.fashion.name, 'E-commerce');
   assert.equal(makeDoc('tech').template, 'fashion');
+});
+
+test('successful token refresh preserves later API errors without signing the user out', async () => {
+  const original = globalThis.fetch, previousWindow = globalThis.window;
+  let calls = 0, unauthorized = 0;
+  globalThis.window = { dispatchEvent: () => unauthorized++ };
+  try {
+    globalThis.fetch = async path => {
+      if (path === '/api/auth/refresh') return Response.json({ refreshed: true });
+      return ++calls === 1 ? Response.json({ error: 'Expired access token' }, { status: 401 }) : Response.json({ error: 'Database is reconnecting' }, { status: 503 });
+    };
+    await assert.rejects(requestJson('/api/products'), /Database is reconnecting/);
+    assert.equal(calls, 2); assert.equal(unauthorized, 0);
+  } finally { globalThis.fetch = original; if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow; }
 });

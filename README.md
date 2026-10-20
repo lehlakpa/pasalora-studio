@@ -73,4 +73,28 @@ GET /api/health, GET /api/store, PUT /api/store, POST /api/uploads (multipart fi
 
 The API binds to loopback for local single-user use. Public hosting requires authentication, authorization, rate limits and a same-origin reverse proxy for /api. A static Vite deployment alone cannot run the API. Cloudinary status indicates configuration, not continuous availability.
 
-Payments, orders and newsletter submissions remain demos.
+Storefront checkout saves orders to the database. Cash on delivery and configured eSewa checkout are supported. The design-editor checkout preview and newsletter submission remain demos.
+
+### eSewa checkout
+
+Product cards use `+` for the cart and `Details` for product information. The details dialog opens checkout through `Order now`. Cash on delivery is available immediately. eSewa reads `ESEWA_PRODUCT_CODE` and `ESEWA_SECRET_KEY` from `backend/.env`. `ESEWA_MODE=test` and `sandbox` use the test gateway and default to `http://localhost:5173` for callbacks. Set `PUBLIC_APP_URL` for another origin; production requires it explicitly. Restart the backend after configuration. Keep the secret server-side. Use `ESEWA_MODE=sandbox` with merchant-issued test credentials, or `production` with live credentials. `PUBLIC_APP_URL` must serve the frontend and proxy `/api` to the backend, including `/api/orders/esewa/return`.
+
+Integration reference: https://developer.esewa.com.np/pages/Epay . The backend signs the server-calculated total, validates the callback signature and queries eSewa before marking payment Paid. Fulfillment status and payment status remain separate. No live payment was performed during implementation.
+
+Authentication reads `ACCESS_TOKEN_SECRET` (also accepts the legacy spelling `ACCESS_TOKEN_SECRE`) and `REFRESH_TOKEN_SECRET`. `ACCESS_TOKEN_EXPIRE` and `REFRESH_TOKEN_EXPIRE` control JWT lifetime, cookies and session expiration together. Use durations such as `15m`, `7d`, or numeric seconds. Existing tokens keep their original expiry; new sign-ins/refreshes use the current configuration.
+
+### Project folders
+
+- `backend/config/`: environment, database, Cloudinary and token settings.
+- `backend/routes/`: API URL mapping and middleware bindings.
+- `backend/controllers/`: auth, product, order, store and upload request handlers.
+- `backend/middleware/`: authentication, origin checks, rate limits, upload and error handling.
+- `backend/models/`: User, Session, Product, Order and Store database schemas.
+- `backend/services/`: eSewa integration.
+- `backend/utils/`: token helpers, serializers and product validation.
+- `backend/tests/`: unit and isolated HTTP route tests.
+- `frontend/src/api/`: shared HTTP client and auth/products/orders/store/upload API modules.
+- `frontend/src/utils/`: storefront formatting.
+- `frontend/src/tests/`: frontend API tests.
+
+`backend/app.js` composes Express without opening a port; `backend/index.js` starts the server and database. API URLs and development commands are unchanged. Docker includes the new folders.

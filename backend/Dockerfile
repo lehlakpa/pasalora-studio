@@ -3,7 +3,14 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
-COPY --chown=node:node index.js ./
+COPY --chown=node:node index.js app.js ./
+COPY --chown=node:node config ./config
+COPY --chown=node:node controllers ./controllers
+COPY --chown=node:node middleware ./middleware
+COPY --chown=node:node models ./models
+COPY --chown=node:node routes ./routes
+COPY --chown=node:node services ./services
+COPY --chown=node:node utils ./utils
 USER node
 ENV HOST=0.0.0.0 PORT=4000
 EXPOSE 4000
